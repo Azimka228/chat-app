@@ -1,17 +1,20 @@
 import { Router } from 'express'
-import { UserModel } from '../models'
+import authRout from './auth'
+import authMiddleware from '../middleware/auth'
+import { RequestHandler } from 'express-serve-static-core'
+import RequestWithUser from '../interfaces/request-with-user'
+import { getUserReturn } from '../help/user'
 
 const router = Router()
+
+router.use('/auth', authRout)
 
 router.get('/healthcheck', (req, res) => {
   res.send('OK')
 })
 
-/*router.get('create-user-test', async (req, res) => {
-  const userModel = new UserModel({ name: 'test', email: 'test@test.com' })
-
-  await userModel.save()
-  res.send('OK')
-})*/
+router.get('/my', authMiddleware as RequestHandler, (req, res) => {
+  res.send(getUserReturn((req as RequestWithUser).user))
+})
 
 export default router
