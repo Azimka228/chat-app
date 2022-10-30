@@ -1,7 +1,7 @@
 import { pick } from 'ramda'
 import { User } from '../models'
 import { Document, Types } from 'mongoose'
-import { DataStoredInToken, TokenData } from '../types/token'
+import { DataStoredInToken, TokenData } from '../types'
 import jwt from 'jsonwebtoken'
 
 export const getUserReturn = pick<keyof (User & Document & { _id: Types.ObjectId })>(['name', 'email'])

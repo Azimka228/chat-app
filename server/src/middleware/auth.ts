@@ -5,7 +5,7 @@ import HttpException from '../exceptions/http-exception'
 import { UserModel } from '../models'
 import jwt from 'jsonwebtoken'
 import { isNil } from 'ramda'
-import { DataStoredInToken } from '../types/token'
+import { DataStoredInToken } from '../types'
 
 function authMiddleware(
   request: RequestWithUser,
