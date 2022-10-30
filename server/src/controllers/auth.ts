@@ -8,7 +8,6 @@ import { createCookie, createToken, getUserReturn } from '../help/user'
 
 const router = Router()
 
-
 router.post('/sign-in', validationMiddleware(SignInDto), (req, res, next) => {
   const dataReq = req.body as SignInDto
 

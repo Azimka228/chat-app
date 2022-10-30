@@ -4,8 +4,16 @@ import bodyParser from 'body-parser'
 import mongoose from 'mongoose'
 import cookieParser from 'cookie-parser'
 import errorMiddleware from './middleware/error'
+import cors from 'cors'
 
 const app = express()
+
+app.use(
+  cors({
+    origin: ['http://localhost:3001'],
+    credentials: true,
+  }),
+)
 
 app.use(bodyParser.json())
 app.use(cookieParser())
