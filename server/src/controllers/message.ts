@@ -39,7 +39,7 @@ router.post(
             })
             newDialog.messages = [newMessage._id]
             await newDialog.save()
-            res.status(204).send()
+            res.status(200).send(newMessage)
           }
         } else {
           const newMessage = await MessageModel.create({
@@ -50,7 +50,7 @@ router.post(
           })
           dialog.messages = [newMessage, ...dialog.messages]
           await dialog.save()
-          res.status(204).send()
+          res.status(200).send(newMessage)
         }
       })
       .catch((e) => {
@@ -75,13 +75,13 @@ router.post(
         if (isNil(dialog)) {
           next(new BadRequestException())
         } else {
-          await MessageModel.create({
+          const newMessage = await MessageModel.create({
             body: dataReq.body,
             created: new Date(),
             sender: user._id,
             dialog: dialog._id,
           })
-          res.status(204).send()
+          res.status(200).send(newMessage)
         }
       })
       .catch((e) => {
