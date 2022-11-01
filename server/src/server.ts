@@ -5,12 +5,13 @@ import mongoose from 'mongoose'
 import cookieParser from 'cookie-parser'
 import errorMiddleware from './middleware/error'
 import cors from 'cors'
+import 'dotenv/config'
 
 const app = express()
 
 app.use(
   cors({
-    origin: ['http://localhost:3001'],
+    origin: [process.env.ORIGIN as string],
     credentials: true,
   }),
 )
@@ -18,11 +19,11 @@ app.use(
 app.use(bodyParser.json())
 app.use(cookieParser())
 
-app.use(errorMiddleware)
-
 app.use(router)
 
-mongoose.connect('mongodb://localhost:27017/chat', {}, (error) => {
+app.use(errorMiddleware)
+
+mongoose.connect(process.env.MONGO_CONNECTION as string, {}, (error) => {
   if (error !== null) {
     console.error(error)
   } else {
@@ -30,6 +31,6 @@ mongoose.connect('mongodb://localhost:27017/chat', {}, (error) => {
   }
 })
 
-app.listen(3000, () => {
-  console.log('server is listening on port 3000')
+app.listen(process.env.PORT, () => {
+  console.log(`server is listening on port ${process.env.PORT ?? 3000}`)
 })
