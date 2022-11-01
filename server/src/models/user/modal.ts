@@ -2,7 +2,7 @@ import { model, Schema, Document } from 'mongoose'
 import { User } from './inteface'
 
 const userSchema = new Schema<User & Document>({
-  name: {
+  nickName: {
     type: Schema.Types.String,
     required: true,
   },

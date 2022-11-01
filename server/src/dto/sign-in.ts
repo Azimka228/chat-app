@@ -3,7 +3,7 @@ import { IsString, MinLength } from 'class-validator'
 class SignInDto {
   @IsString()
   @MinLength(1)
-  public name: string = ''
+  public nickName: string = ''
 
   @IsString()
   @MinLength(1)
