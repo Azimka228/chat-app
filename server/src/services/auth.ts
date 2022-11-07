@@ -8,6 +8,7 @@ import { injectable } from 'inversify'
 @injectable()
 export class AuthService {
   async signIn(data: SignIn): Promise<User & mongoose.Document & { _id: mongoose.Types.ObjectId }> {
+
     const user = await UserModel.findOne({ nickName: data.nickName }).exec()
 
     if (user === null) {

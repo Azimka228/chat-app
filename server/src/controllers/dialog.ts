@@ -4,19 +4,19 @@ import { controller, httpGet, interfaces, request, requestParam } from 'inversif
 import { isNil } from 'ramda'
 import NotFoundException from '../exceptions/http/not-found'
 import { inject } from 'inversify'
-import { identifiers } from '../ioc'
+import { identifiersMiddleware, identifiersService } from '../ioc'
 import { DialogService } from '../services'
 
 @controller('/dialog')
 export class DialogController implements interfaces.Controller {
-  constructor(@inject(identifiers.DialogService) private readonly _dialogService: DialogService) {}
+  constructor(@inject(identifiersService.DialogService) private readonly _dialogService: DialogService) {}
 
-  @httpGet('/', identifiers.AuthMiddleware)
+  @httpGet('/', identifiersMiddleware.AuthMiddleware)
   private async dialogs(@request() req: RequestWithUser): Promise<readonly Dialog[]> {
     return await this._dialogService.get(req.user)
   }
 
-  @httpGet('/:id', identifiers.AuthMiddleware)
+  @httpGet('/:id', identifiersMiddleware.AuthMiddleware)
   private async dialogById(
     @request() req: RequestWithUser,
     @requestParam('id') id: string,

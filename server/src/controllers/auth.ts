@@ -3,7 +3,7 @@ import { User } from '../models'
 import { SignInDto, SignUpDto } from '../dto'
 import { createCookie, createToken } from '../help/user'
 import { controller, httpPost, interfaces, request, response } from 'inversify-express-utils'
-import { identifiers } from '../ioc'
+import { identifiersService } from '../ioc'
 import { AuthService, UserService } from '../services'
 import { inject } from 'inversify'
 import validationMiddleware from '../middleware/validation'
@@ -11,8 +11,8 @@ import validationMiddleware from '../middleware/validation'
 @controller('/auth')
 export class AuthController implements interfaces.Controller {
   constructor(
-    @inject(identifiers.AuthService) private readonly _authService: AuthService,
-    @inject(identifiers.UserService) private readonly _userService: UserService,
+    @inject(identifiersService.AuthService) private readonly _authService: AuthService,
+    @inject(identifiersService.UserService) private readonly _userService: UserService,
   ) {}
 
   @httpPost('/sign-in', validationMiddleware(SignInDto))
