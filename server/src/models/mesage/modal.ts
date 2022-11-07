@@ -1,7 +1,6 @@
 import { model, Schema, Document } from 'mongoose'
 import { Message } from './interface'
 
-
 const messageSchema = new Schema<Message & Document>({
   body: {
     type: Schema.Types.String,

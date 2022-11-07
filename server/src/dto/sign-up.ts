@@ -1,6 +1,6 @@
 import { IsString, MinLength } from 'class-validator'
 
-class SignUpDto {
+export class SignUpDto {
   @IsString()
   @MinLength(1)
   public nickName: string = ''
@@ -13,4 +13,3 @@ class SignUpDto {
   @MinLength(1)
   public password: string = ''
 }
-export default SignUpDto

@@ -1,94 +1,31 @@
-import { Router } from 'express'
-import authMiddleware from '../middleware/auth'
-import { RequestHandler } from 'express-serve-static-core'
-import { MessageModel, UserModel, DialogModel } from '../models'
-import validationMiddleware from '../middleware/validation'
+import { Message } from '../models'
 import { MessageDialogIdDto, MessageUserIdDto } from '../dto'
-import BadRequestException from '../exceptions/bad-request'
 import RequestWithUser from '../interfaces/request-with-user'
-import { isNil } from 'ramda'
-import NotFound from '../exceptions/not-found'
+import { controller, httpPost, interfaces, request, requestBody } from 'inversify-express-utils'
+import { inject } from 'inversify'
+import { identifiers } from '../ioc'
+import { MessageService } from '../services'
+import validationMiddleware from '../middleware/validation'
 
-const router = Router()
+@controller('/message')
+export class MessageController implements interfaces.Controller {
+  constructor(
+    @inject(identifiers.MessageService) private readonly _messageService: MessageService,
+  ) {}
 
-router.post(
-  '/user',
-  authMiddleware as RequestHandler,
-  validationMiddleware(MessageUserIdDto),
-  (req, res, next) => {
-    const dataReq = req.body as MessageUserIdDto
-    const user = (req as RequestWithUser).user
+  @httpPost('/user', identifiers.AuthMiddleware, validationMiddleware(MessageUserIdDto))
+  private async create(
+    @request() req: RequestWithUser,
+    @requestBody() messageDto: MessageUserIdDto,
+  ): Promise<Message> {
+    return await this._messageService.createByUser(req.user, messageDto)
+  }
 
-    DialogModel.findOne({ users: [user._id, dataReq.toId] })
-      .exec()
-      .then(async (dialog) => {
-        if (isNil(dialog)) {
-          const recipient = await UserModel.findById(dataReq.toId).exec()
-          if (isNil(recipient)) {
-            next(new NotFound())
-          } else {
-            const newDialog = await DialogModel.create({
-              users: [user._id, dataReq.toId],
-              messages: [],
-            })
-            const newMessage = await MessageModel.create({
-              body: dataReq.body,
-              created: new Date(),
-              sender: user._id,
-              dialog: newDialog._id,
-            })
-            newDialog.messages = [newMessage._id]
-            await newDialog.save()
-            res.status(200).send(newMessage)
-          }
-        } else {
-          const newMessage = await MessageModel.create({
-            body: dataReq.body,
-            created: new Date(),
-            sender: user._id,
-            dialog: dialog._id,
-          })
-          dialog.messages = [newMessage, ...dialog.messages]
-          await dialog.save()
-          res.status(200).send(newMessage)
-        }
-      })
-      .catch((e) => {
-        console.error(e)
-        next(new BadRequestException())
-      })
-  },
-)
-
-router.post(
-  '/dialog',
-  authMiddleware as RequestHandler,
-  validationMiddleware(MessageDialogIdDto),
-  (req, res, next) => {
-    const dataReq = req.body as MessageDialogIdDto
-    const user = (req as RequestWithUser).user
-
-    DialogModel.findById(dataReq.dialogId)
-      .findOne({ users: user._id })
-      .exec()
-      .then(async (dialog) => {
-        if (isNil(dialog)) {
-          next(new BadRequestException())
-        } else {
-          const newMessage = await MessageModel.create({
-            body: dataReq.body,
-            created: new Date(),
-            sender: user._id,
-            dialog: dialog._id,
-          })
-          res.status(200).send(newMessage)
-        }
-      })
-      .catch((e) => {
-        console.error(e)
-        next(new BadRequestException())
-      })
-  },
-)
-
-export default router
+  @httpPost('/dialog', identifiers.AuthMiddleware, validationMiddleware(MessageDialogIdDto))
+  private async createByDialog(
+    @request() req: RequestWithUser,
+    @requestBody() messageDto: MessageDialogIdDto,
+  ): Promise<Message> {
+    return await this._messageService.createByDialog(req.user, messageDto)
+  }
+}
