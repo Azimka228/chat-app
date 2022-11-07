@@ -13,7 +13,7 @@ const userSchema = new Schema<User & Document>({
   password: {
     type: Schema.Types.String,
     required: true,
-  }
+  },
 })
 
 export const UserModel = model('user', userSchema)

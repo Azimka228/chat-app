@@ -1,58 +1,50 @@
-import { hash, compare } from 'bcrypt'
-import { Router } from 'express'
-import { UserModel } from '../models'
-import BadRequestException from '../exceptions/bad-request'
-import validationMiddleware from '../middleware/validation'
+import express from 'express'
+import { User } from '../models'
 import { SignInDto, SignUpDto } from '../dto'
 import { createCookie, createToken } from '../help/user'
+import { controller, httpPost, interfaces, request, response } from 'inversify-express-utils'
+import { identifiersService } from '../ioc'
+import { AuthService, UserService } from '../services'
+import { inject } from 'inversify'
+import validationMiddleware from '../middleware/validation'
 
-const router = Router()
+@controller('/auth')
+export class AuthController implements interfaces.Controller {
+  constructor(
+    @inject(identifiersService.AuthService) private readonly _authService: AuthService,
+    @inject(identifiersService.UserService) private readonly _userService: UserService,
+  ) {}
 
-router.post('/sign-in', validationMiddleware(SignInDto), (req, res, next) => {
-  const dataReq = req.body as SignInDto
+  @httpPost('/sign-in', validationMiddleware(SignInDto))
+  private async signIn(
+    @request() req: express.Request,
+    @response() res: express.Response,
+  ): Promise<void> {
+    const dataReq = req.body as SignInDto
 
-  void UserModel.findOne({ nickName: dataReq.nickName })
-    .exec()
-    .then(async (user) => {
-      if (user === null) {
-        next(new BadRequestException())
-      } else {
-        const isPasswordMatching = await compare(dataReq.password, user.password)
-        if (isPasswordMatching) {
-          const tokenData = createToken(user)
-          res.setHeader('Set-Cookie', [createCookie(tokenData)])
-          res.status(204).send()
-        } else {
-          next(new BadRequestException())
-        }
-      }
-    })
-})
+    const user = (await this._authService.signIn(dataReq)) as User
+    const tokenData = createToken(user)
+    res.setHeader('Set-Cookie', [createCookie(tokenData)])
+    res.sendStatus(204)
+  }
 
-router.post('/sign-up', validationMiddleware(SignUpDto), (req, res, next) => {
-  const dataReq = req.body as SignUpDto
+  @httpPost('/sign-up', validationMiddleware(SignUpDto))
+  private async signUp(
+    @request() req: express.Request,
+    @response() res: express.Response,
+  ): Promise<void> {
+    const dataReq = req.body as SignUpDto
 
-  void UserModel.findOne({ $or: [{ nickName: dataReq.nickName }, { email: dataReq.email }] })
-    .exec()
-    .then(async (user) => {
-      if (user !== null) {
-        next(new BadRequestException())
-      } else {
-        const hashedPassword = await hash(dataReq.password, 10)
-        const user = await UserModel.create({
-          ...dataReq,
-          password: hashedPassword,
-        })
-        const tokenData = createToken(user)
-        res.setHeader('Set-Cookie', [createCookie(tokenData)])
-        res.status(204).send()
-      }
-    })
-})
+    const user = await this._authService.signUp(dataReq)
 
-router.post('/sign-out', (req, res) => {
-  res.setHeader('Set-Cookie', ['Authorization=;Max-age=0'])
-  res.status(204).send()
-})
+    const tokenData = createToken(user)
+    res.setHeader('Set-Cookie', [createCookie(tokenData)])
+    res.sendStatus(204)
+  }
 
-export default router
+  @httpPost('/sign-out')
+  private signOut(@response() res: express.Response): void {
+    res.setHeader('Set-Cookie', ['Authorization=;Max-age=0'])
+    res.sendStatus(204)
+  }
+}

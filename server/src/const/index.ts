@@ -1,1 +1,1 @@
-export {modelFieldsName, userFieldsName} from './modal'
+export { modelFieldsName, userFieldsName } from './modal'
